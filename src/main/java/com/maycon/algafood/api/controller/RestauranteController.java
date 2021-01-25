@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.maycon.algafood.domain.exception.CozinhaInexistenteNaoEncontrada;
+import com.maycon.algafood.domain.exception.EntidadeEmUsoException;
 import com.maycon.algafood.domain.exception.EntidadeNaoEncontradaException;
 import com.maycon.algafood.domain.model.Restaurante;
 import com.maycon.algafood.domain.repository.RestauranteRepository;
@@ -38,7 +38,7 @@ public class RestauranteController {
 
 	@GetMapping
 	public List<Restaurante> listar() {
-		return restauranteRepository.listar();
+		return restauranteRepository.findAll();
 	}
 
 	@GetMapping("/{codigo}")
@@ -69,7 +69,7 @@ public class RestauranteController {
 			BeanUtils.copyProperties(restaurante, restauranteAtual, "id");
 			restauranteAtual = restauranteService.salvar(restauranteAtual);
 			return ResponseEntity.ok(restauranteAtual);
-		} catch (CozinhaInexistenteNaoEncontrada e) {
+		} catch (EntidadeEmUsoException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (EntidadeNaoEncontradaException e) {
 			return ResponseEntity.notFound().build();
@@ -110,7 +110,6 @@ public class RestauranteController {
 
 		} catch (EntidadeNaoEncontradaException e) {
 			return ResponseEntity.notFound().build();
-
 		}
 	}
 

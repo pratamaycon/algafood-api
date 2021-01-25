@@ -1,6 +1,7 @@
 package com.maycon.algafood.api.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,15 +35,15 @@ public class CozinhaController {
 
 	@GetMapping
 	public List<Cozinha> listar() {
-		return cozinhaRepository.listar();
+		return cozinhaRepository.findAll();
 	}
 
 	@GetMapping("/{codigo}")
 	public ResponseEntity<Cozinha> buscarPorId(@PathVariable Long codigo) {
-		Cozinha cozinha = cozinhaRepository.buscar(codigo);
+		Optional<Cozinha> cozinha = cozinhaRepository.findById(codigo);
 
-		if (cozinha != null) {
-			return ResponseEntity.ok(cozinha);
+		if (cozinha.isPresent()) {
+			return ResponseEntity.ok(cozinha.get());
 		}
 		
 		return ResponseEntity.notFound().build();
@@ -56,19 +57,19 @@ public class CozinhaController {
 
 	@PutMapping("/{codigo}")
 	public ResponseEntity<Cozinha> atualizar(@PathVariable Long codigo, @RequestBody Cozinha cozinha) {
-		Cozinha cozinhaAtual = cozinhaRepository.buscar(codigo);
+		Optional<Cozinha> cozinhaAtual = cozinhaRepository.findById(codigo);
 
-		if (cozinhaAtual != null) {
-			BeanUtils.copyProperties(cozinha, cozinhaAtual, "id");
-			cozinhaAtual = cozinhaService.salvar(cozinhaAtual);
+		if (cozinhaAtual.isPresent()) {
+			BeanUtils.copyProperties(cozinha, cozinhaAtual.get(), "id");
+			Cozinha cozinhaSalva = cozinhaService.salvar(cozinhaAtual.get());
 
-			return ResponseEntity.ok(cozinhaAtual);
+			return ResponseEntity.ok(cozinhaSalva);
 		}
 		return ResponseEntity.notFound().build();
 	}
 
 	@DeleteMapping("/{codigo}")
-	public ResponseEntity<Cozinha> remover(@PathVariable Long codigo) {
+	public ResponseEntity<?> remover(@PathVariable Long codigo) {
 		try {
 			cozinhaService.excluir(codigo);
 			return ResponseEntity.noContent().build();
@@ -76,8 +77,8 @@ public class CozinhaController {
 		} catch (EntidadeNaoEncontradaException e) {
 			return ResponseEntity.notFound().build();
 
-		} catch (EntidadeEmUsoException emUsoException) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		} catch (EntidadeEmUsoException e) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
 		}
 
 	}

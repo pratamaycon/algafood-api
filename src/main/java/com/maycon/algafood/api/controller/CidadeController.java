@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maycon.algafood.domain.exception.EntidadeEmUsoException;
 import com.maycon.algafood.domain.exception.EntidadeNaoEncontradaException;
-import com.maycon.algafood.domain.exception.EstadoInexistenteNaoEncontrada;
 import com.maycon.algafood.domain.model.Cidade;
 import com.maycon.algafood.domain.repository.CidadeRepository;
 import com.maycon.algafood.domain.service.CidadeService;
@@ -33,7 +33,7 @@ public class CidadeController {
 	
 	@GetMapping
 	public List<Cidade> listar() {
-		return cidadeRepository.listar();
+		return cidadeRepository.findAll();
 	}
 
 	@GetMapping("/{codigo}")
@@ -53,7 +53,7 @@ public class CidadeController {
 			
 			return ResponseEntity.status(HttpStatus.CREATED)
 					.body(cidade);
-		} catch (EstadoInexistenteNaoEncontrada e) {
+		} catch (EntidadeNaoEncontradaException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
@@ -65,7 +65,7 @@ public class CidadeController {
 			BeanUtils.copyProperties(cidade, cidadeAtual, "id");
 			cidadeAtual = cidadeService.salvar(cidadeAtual);
 			return ResponseEntity.ok(cidadeAtual);
-		} catch (EstadoInexistenteNaoEncontrada e) {
+		} catch (EntidadeEmUsoException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (EntidadeNaoEncontradaException e) {
 			return ResponseEntity.notFound().build();
